@@ -403,6 +403,10 @@ void ConstraintTable::interpolatePointTime(int agent_id, const Point& from_point
     interpolated_points.emplace_back(interpoated_point);
     interpoated_times.emplace_back(from_time + timestep);
   }
+  if (interpolated_points.empty()) {
+    interpolated_points.emplace_back(from_point);
+    interpoated_times.emplace_back(from_time);
+  }
   const double remain_time = fmod(expand_distance, env.velocities[agent_id]);
   if (remain_time > env.epsilon) {
     Point interpoated_point = make_tuple(get<0>(from_point) + env.velocities[agent_id] * cos(theta) * expand_time,

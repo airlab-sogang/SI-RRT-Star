@@ -143,10 +143,14 @@ Path SIRRT::updatePath(const shared_ptr<LLNode>& goal_node) const {
     assert(prev_time < curr_time);
 
     const auto expand_time = calculateDistance(prev_node->point, curr_node->point) / env.velocities[agent_id];
-    path.emplace_back(curr_node->point, curr_time);
-    if (prev_time + expand_time + env.epsilon < curr_time) {
-      path.emplace_back(prev_node->point, curr_time - expand_time);
-      // cout << "path is not continuous" << endl;
+    vector<Point> interpolated_points;
+    vector<double> interpolated_times;
+    constraint_table.interpolatePointTime(agent_id, prev_node->point, curr_node->point, curr_time - expand_time,
+                                          curr_time, interpolated_points, interpolated_times);
+    reverse(interpolated_points.begin(), interpolated_points.end());
+    reverse(interpolated_times.begin(), interpolated_times.end());
+    for (int i = 0; i < interpolated_points.size() - 1; ++i) {
+      path.emplace_back(interpolated_points[i], interpolated_times[i]);
     }
     curr_node = curr_node->parent.lock();
   }
