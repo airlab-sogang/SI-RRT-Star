@@ -303,7 +303,7 @@ void ConstraintTable::insertToSafeIntervalTable(vector<Interval>& safe_intervals
       get<1>(safe_intervals[i]) = t_min;
     }
     if (t_min > get<0>(safe_intervals[i]) && t_max < get<1>(safe_intervals[i])) {
-      safe_intervals.emplace_back(t_max, get<1>(safe_intervals[i]));
+      safe_intervals.insert(safe_intervals.begin() + i + 1, make_tuple(t_max, get<1>(safe_intervals[i])));
       get<1>(safe_intervals[i]) = t_min;
     }
   }
