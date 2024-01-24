@@ -17,8 +17,8 @@ execute_with_timeout() {
 
 # 여기에 세빈이형 테스트 내용 넣으면 돼요
 ENVIRONMENTS=("RectEnv")
-DENSITY=(10)
-ROBOT_NUM=(30 40 60 80 100)
+DENSITY=(20)
+ROBOT_NUM=(30)
 BASE_COMMAND="./build/SI-CBS"
 
 # 여기는 건들지 말아주세요

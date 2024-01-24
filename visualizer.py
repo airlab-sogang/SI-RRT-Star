@@ -10,8 +10,8 @@ sample = 10
 
 mapname = "RectEnv"
 obs = "20"
-robotnum = "20"
-testnum = "5"
+robotnum = "30"
+testnum = "6"
 
 benchmarkPath = "benchmark/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + ".yaml"
 solutionPath = "pp_solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + "_solution.txt"

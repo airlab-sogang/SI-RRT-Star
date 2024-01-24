@@ -170,6 +170,7 @@ bool ConstraintTable::targetConstrained(int agent_id, const Point& from_point, c
     vector<double> interpolated_times;
     interpolatePointTime(agent_id, from_point, to_point, from_time, to_time, interpolated_points, interpolated_times);
     for (int i = 0; i < interpolated_points.size(); ++i) {
+      if (last_time > interpolated_times[i]) continue;
       if (calculateDistance(last_point, interpolated_points[i]) < radius + env.radii[occupied_agent_id]) {
         return true;
       }
