@@ -70,11 +70,30 @@ bool ConstraintTable::pathConstrained(int agent_id, const Point& from_point, con
           expand_distance + radius + calculateDistance(prev_point, next_point) + env.radii[occupied_agent_id])
         continue;
 
-      vector<Point> interpolated_points;
-      vector<double> interpolated_times;
-      interpolatePointTime(agent_id, from_point, to_point, from_time, to_time, interpolated_points, interpolated_times);
-      for (int j = 0; j < interpolated_points.size(); ++j) {
-        const auto occupied_expand_time = interpolated_times[j] - prev_time;
+      // set check time
+      double start_time = -1.0;
+      double end_time = -1.0;
+      if (prev_time <= from_time && next_time <= to_time) {
+        start_time = from_time;
+        end_time = next_time;
+      } else if (prev_time <= from_time && next_time >= to_time) {
+        start_time = from_time;
+        end_time = to_time;
+      } else if (prev_time >= from_time && next_time <= to_time) {
+        start_time = prev_time;
+        end_time = next_time;
+      } else if (prev_time >= from_time && next_time >= to_time) {
+        start_time = prev_time;
+        end_time = to_time;
+      } else {
+        assert(false);
+      }
+
+      auto curr_time = start_time;
+      while (curr_time < end_time) {
+        // get point at start_time
+        const auto occupied_expand_time = curr_time - prev_time;
+        assert(occupied_expand_time >= 0.0);
         const auto occupied_theta =
             atan2(get<1>(next_point) - get<1>(prev_point), get<0>(next_point) - get<0>(prev_point));
 
@@ -84,9 +103,23 @@ bool ConstraintTable::pathConstrained(int agent_id, const Point& from_point, con
               get<0>(prev_point) + env.velocities[occupied_agent_id] * cos(occupied_theta) * occupied_expand_time,
               get<1>(prev_point) + env.velocities[occupied_agent_id] * sin(occupied_theta) * occupied_expand_time);
         }
-        if (calculateDistance(interpolated_points[j], occupied_point) < radius + env.radii[occupied_agent_id]) {
+
+        // get point2 at start_time
+        const auto expand_time = curr_time - from_time;
+        assert(expand_time >= 0.0);
+        const auto theta = atan2(get<1>(to_point) - get<1>(from_point), get<0>(to_point) - get<0>(from_point));
+
+        auto point = from_point;
+        if (theta != 0.0) {
+          point = make_tuple(get<0>(from_point) + env.velocities[agent_id] * cos(theta) * expand_time,
+                             get<1>(from_point) + env.velocities[agent_id] * sin(theta) * expand_time);
+        }
+
+        if (calculateDistance(point, occupied_point) < radius + env.radii[occupied_agent_id]) {
           return true;
         }
+
+        curr_time += 1.0;
       }
     }
   }
