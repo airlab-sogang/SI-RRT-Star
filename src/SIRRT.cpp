@@ -69,8 +69,6 @@ Path SIRRT::run() {
   if (goal_node != nullptr) {
     nodes.push_back(goal_node);
     path = updatePath(goal_node);
-    assert(calculateDistance(get<0>(path.front()), start_point) < env.epsilon);
-    assert(calculateDistance(get<0>(path.back()), goal_point) < env.epsilon);
     // assert velocity always be 1.0m/s
     for (int j = 0; j < path.size() - 1; ++j) {
       const double distance = calculateDistance(get<0>(path[j]), get<0>(path[j + 1]));
@@ -137,6 +135,7 @@ Point SIRRT::steer(const shared_ptr<LLNode>& from_node, const Point& random_poin
 }
 
 Path SIRRT::updatePath(const shared_ptr<LLNode>& goal_node) const {
+  // TODO : BUG FIX
   Path path;
   shared_ptr<LLNode> curr_node = goal_node;
   while (curr_node->parent.lock() != nullptr) {
@@ -149,12 +148,14 @@ Path SIRRT::updatePath(const shared_ptr<LLNode>& goal_node) const {
     path.emplace_back(curr_node->point, curr_time);
     if (prev_time + expand_time + env.epsilon < curr_time) {
       path.emplace_back(prev_node->point, curr_time - expand_time);
-      // cout << "path is not continuous" << endl;
     }
     curr_node = curr_node->parent.lock();
   }
   path.emplace_back(curr_node->point, 0);
   reverse(path.begin(), path.end());
+
+  assert(calculateDistance(get<0>(path.front()), start_point) < env.epsilon);
+  assert(calculateDistance(get<0>(path.back()), goal_point) < env.epsilon);
 
   return path;
 }

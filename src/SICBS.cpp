@@ -198,6 +198,8 @@ void SICBS::findConflicts(const Solution& solution, vector<Conflict>& conflicts)
           assert(curr_time >= get<1>(partial_path2.back()));
           if (get<1>(partial_path1.back()) != curr_time) {
             partial_path1.emplace_back(make_tuple(agent1_point, curr_time));
+          }
+          if (get<1>(partial_path2.back()) != curr_time) {
             partial_path2.emplace_back(make_tuple(agent2_point, curr_time));
           }
           conflicts.emplace_back(agent1_id, agent2_id, make_tuple(partial_path1, partial_path2));
