@@ -197,8 +197,8 @@ shared_ptr<LLNode> SIRRT::chooseParent(const Point& new_point, const vector<shar
     auto safe_intervals = safe_interval_table.table[new_point];
     for (auto& safe_interval : safe_intervals) {
       // lower bound와 upper bound가 safe interval과 겹치지 않는다면 continue
-      if (lower_bound >= get<1>(safe_interval)) continue;
-      if (upper_bound <= get<0>(safe_interval)) break;
+      if (lower_bound + env.epsilon >= get<1>(safe_interval)) continue;
+      if (upper_bound - env.epsilon <= get<0>(safe_interval)) break;
 
       // neighbor노드로부터 new node로 갈 때의 가장 빠른 도착 시간을 구한다.
       // 가장 빠른 도착 시간이란 neighbor노드로부터 new node로 갈 때 hard constraint와 충돌하지 않는 가장 빠른 시간을
@@ -247,8 +247,8 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
     auto safe_intervals = safe_interval_table.table[neighbor->point];
     for (auto& safe_interval : safe_intervals) {
       // lower bound와 upper bound가 safe interval과 겹치지 않는다면 continue
-      if (lower_bound >= get<1>(safe_interval)) continue;
-      if (upper_bound <= get<0>(safe_interval)) break;
+      if (lower_bound + env.epsilon >= get<1>(safe_interval)) continue;
+      if (upper_bound - env.epsilon <= get<0>(safe_interval)) break;
 
       // new node로부터 neighbor로 갈 때의 가장 빠른 도착 시간을 구한다.
       // 가장 빠른 도착 시간이란 new node로부터 neighbor로 갈 때 hard constraint와 충돌하지 않는 가장 빠른 시간을
