@@ -24,10 +24,10 @@ int main(int argc, char* argv[]) {
 
   string benchmarkPath = "benchmark/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
                          robotnum + "_" + testnum + ".yaml";
-  string solutionPath = "pp_solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
+  string solutionPath = "solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
                         robotnum + "_" + testnum + "_solution.txt";
-  string dataPath = "pp_data/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
-                    robotnum + "_" + testnum + "_data.txt";
+  string dataPath = "data/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum +
+                    "_" + testnum + "_data.txt";
   YAML::Node config = YAML::LoadFile(benchmarkPath);
 
   vector<shared_ptr<Obstacle>> obstacles;

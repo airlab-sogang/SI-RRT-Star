@@ -131,26 +131,32 @@ void SICBS::findConflicts(const Solution& solution, vector<Conflict>& conflicts)
       const double max_path_time = max(get<1>(solution[agent1_id].back()), get<1>(solution[agent2_id].back()));
 
       bool is_safe = true;
-      double collision_start_time = 0.0;
 
-      double time = 0.0;
-      while (time < max_path_time) {
+      double curr_time = 0.0;
+      while (curr_time < max_path_time) {
         // update prev_point1, next_point1, prev_point2, next_point2
         // TODO : BUG HERE
-        if (time >= next_time1) {
+        if (curr_time >= next_time1 && index1 < solution[agent1_id].size() - 2) {
           index1++;
           prev_point1 = get<0>(solution[agent1_id][min(static_cast<int>(solution[agent1_id].size()) - 1, index1)]);
           prev_time1 = get<1>(solution[agent1_id][min(static_cast<int>(solution[agent1_id].size()) - 1, index1)]);
           next_point1 = get<0>(solution[agent1_id][min(static_cast<int>(solution[agent1_id].size()) - 1, index1 + 1)]);
           next_time1 = get<1>(solution[agent1_id][min(static_cast<int>(solution[agent1_id].size()) - 1, index1 + 1)]);
+          if (!is_safe) partial_path1.emplace_back(make_tuple(prev_point1, prev_time1));
         }
-        if (time >= next_time2) {
+        if (curr_time >= next_time2 && index2 < solution[agent2_id].size() - 2) {
           index2++;
           prev_point2 = get<0>(solution[agent2_id][min(static_cast<int>(solution[agent2_id].size()) - 1, index2)]);
           prev_time2 = get<1>(solution[agent2_id][min(static_cast<int>(solution[agent2_id].size()) - 1, index2)]);
           next_point2 = get<0>(solution[agent2_id][min(static_cast<int>(solution[agent2_id].size()) - 1, index2 + 1)]);
           next_time2 = get<1>(solution[agent2_id][min(static_cast<int>(solution[agent2_id].size()) - 1, index2 + 1)]);
+          if (!is_safe) partial_path2.emplace_back(make_tuple(prev_point2, prev_time2));
         }
+
+        const auto agent1_expand_time = curr_time - prev_time1;
+        const auto agent2_expand_time = curr_time - prev_time2;
+        assert(agent1_expand_time >= 0.0);
+        assert(agent2_expand_time >= 0.0);
 
         const auto agent1_theta =
             atan2(get<1>(next_point1) - get<1>(prev_point1), get<0>(next_point1) - get<0>(prev_point1));
@@ -158,43 +164,41 @@ void SICBS::findConflicts(const Solution& solution, vector<Conflict>& conflicts)
             atan2(get<1>(next_point2) - get<1>(prev_point2), get<0>(next_point2) - get<0>(prev_point2));
 
         auto agent1_point = prev_point1;
-        auto agent2_point = prev_point2;
-        const auto agent1_expand_time = time - prev_time1;
-        const auto agent2_expand_time = time - prev_time2;
-        assert(agent1_expand_time >= 0.0);
-        assert(agent2_expand_time >= 0.0);
         if (agent1_theta != 0.0) {
           agent1_point =
               make_tuple(get<0>(prev_point1) + env.velocities[agent1_id] * cos(agent1_theta) * agent1_expand_time,
                          get<1>(prev_point1) + env.velocities[agent1_id] * sin(agent1_theta) * agent1_expand_time);
         }
+        auto agent2_point = prev_point2;
         if (agent2_theta != 0.0) {
           agent2_point =
               make_tuple(get<0>(prev_point2) + env.velocities[agent2_id] * cos(agent2_theta) * agent2_expand_time,
                          get<1>(prev_point2) + env.velocities[agent2_id] * sin(agent2_theta) * agent2_expand_time);
         }
 
-        if (calculateDistance(agent1_point, agent2_point) < env.radii[agent1_id] + env.radii[agent2_id]) {
-          if (is_safe) {
-            is_safe = false;
-            collision_start_time = time;
-            partial_path1.clear();
-            partial_path2.clear();
-          }
-          partial_path1.emplace_back(agent1_point, time);
-          partial_path2.emplace_back(agent2_point, time);
+        if (calculateDistance(agent1_point, agent2_point) < env.radii[agent1_id] + env.radii[agent2_id] & is_safe) {
+          is_safe = false;
+          partial_path1.emplace_back(make_tuple(agent1_point, curr_time));
+          partial_path2.emplace_back(make_tuple(agent2_point, curr_time));
         } else if (calculateDistance(agent1_point, agent2_point) >= env.radii[agent1_id] + env.radii[agent2_id] &
                    !is_safe) {
           is_safe = true;
+          partial_path1.emplace_back(make_tuple(agent1_point, curr_time));
+          partial_path2.emplace_back(make_tuple(agent2_point, curr_time));
           conflicts.emplace_back(agent1_id, agent2_id, make_tuple(partial_path1, partial_path2));
-          assert(collision_start_time < time);
+          partial_path1.clear();
+          partial_path2.clear();
         }
-        time += 1.0;
+        curr_time += 1.0;
       }
       if (!is_safe) {
-        // TODO: CHECK THIS
+        Point last_point1 = get<0>(solution[agent1_id].back());
+        Point last_point2 = get<0>(solution[agent2_id].back());
+        partial_path1.emplace_back(make_tuple(last_point1, max_path_time));
+        partial_path2.emplace_back(make_tuple(last_point2, max_path_time));
         conflicts.emplace_back(agent1_id, agent2_id, make_tuple(partial_path1, partial_path2));
-        assert(collision_start_time < time);
+        partial_path1.clear();
+        partial_path2.clear();
       }
     }
   }
