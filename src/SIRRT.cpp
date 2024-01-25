@@ -36,11 +36,6 @@ Path SIRRT::run() {
       continue;
     }
 
-    if (get<0>(new_point) >= 13.8 && get<0>(new_point) <= 13.9 && get<1>(new_point) >= 33.1 &&
-        get<1>(new_point) <= 33.2) {
-      cout << "new point: " << get<0>(new_point) << " " << get<1>(new_point) << endl;
-    }
-
     // SIRRT*
     vector<shared_ptr<LLNode>> neighbors;
     getNeighbors(new_point, neighbors);
@@ -255,10 +250,6 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
       // new node로부터 neighbor로 갈 때의 가장 빠른 도착 시간을 구한다.
       // 가장 빠른 도착 시간이란 new node로부터 neighbor로 갈 때 hard constraint와 충돌하지 않는 가장 빠른 시간을
       // 의미한다.
-      if (get<0>(neighbor->point) >= 13.8 && get<0>(neighbor->point) <= 13.9 && get<1>(neighbor->point) >= 33.1 &&
-          get<1>(neighbor->point) <= 33.2) {
-        cout << "neighbor point: " << get<0>(neighbor->point) << " " << get<1>(neighbor->point) << endl;
-      }
       const double earliest_arrival_time = constraint_table.getEarliestArrivalTime(
           agent_id, new_node->point, neighbor->point, expand_time, max(get<0>(safe_interval), lower_bound),
           min(get<1>(safe_interval), upper_bound), env.radii[agent_id]);
@@ -267,10 +258,6 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
 
       // 가장 빠른 도착 시간이 neighbor의 interval보다 작다면 neighbor의 interval을 업데이트한다.
       if (earliest_arrival_time < get<0>(neighbor->interval)) {
-        if (get<0>(neighbor->point) >= 13.8 && get<0>(neighbor->point) <= 13.9 && get<1>(neighbor->point) >= 33.1 &&
-            get<1>(neighbor->point) <= 33.2) {
-          cout << "neighbor point: " << get<0>(neighbor->point) << " " << get<1>(neighbor->point) << endl;
-        }
         // earliest arrival time이 neighbor의 interval의 upper bound보다 크다면 새로운 노드 생성
         if (get<1>(safe_interval) <= get<0>(neighbor->interval)) {
           shared_ptr<LLNode> new_neighbor_node = make_shared<LLNode>(neighbor->point);

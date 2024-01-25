@@ -14,6 +14,7 @@ Solution SICBS::run() {
   open_list.push(root);
   while (!open_list.empty()) {
     auto curr_node = open_list.top();
+    cout << "Cost : " << curr_node.conflicts.size() << endl;
     open_list.pop();
 
     if (curr_node.conflicts.empty()) {
@@ -96,6 +97,7 @@ Solution SICBS::getInitialSolution() {
       cout << "No path for agent " << agent_id << endl;
       return {};
     }
+    cout << "Agent " << agent_id << " found a path" << endl;
     solution.emplace_back(path);
     // constraint_table.updateSoftConstraint(agent_id, path);
   }
@@ -159,6 +161,8 @@ void SICBS::findConflicts(const Solution& solution, vector<Conflict>& conflicts)
         auto agent2_point = prev_point2;
         const auto agent1_expand_time = time - prev_time1;
         const auto agent2_expand_time = time - prev_time2;
+        assert(agent1_expand_time >= 0.0);
+        assert(agent2_expand_time >= 0.0);
         if (agent1_theta != 0.0) {
           agent1_point =
               make_tuple(get<0>(prev_point1) + env.velocities[agent1_id] * cos(agent1_theta) * agent1_expand_time,
