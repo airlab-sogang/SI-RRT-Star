@@ -273,16 +273,6 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
         }
         break;
       }
-      // if (earliest_arrival_time < get<0>(neighbor->interval)) {
-      //   neighbor->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
-      //   neighbor->parent.lock()->children.erase(
-      //       remove(neighbor->parent.lock()->children.begin(), neighbor->parent.lock()->children.end(), neighbor),
-      //       neighbor->parent.lock()->children.end());
-      //   neighbor->parent = new_node;
-      //   new_node->children.emplace_back(neighbor);
-      //   // propagateCostToSuccessor(neighbor, safe_interval_table);
-      //   break;
-      // }
     }
   }
 }

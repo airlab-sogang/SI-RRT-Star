@@ -27,22 +27,22 @@ Solution SICBS::run() {
 
     auto conflict = curr_node.conflicts[0];
     vector<int> agent_ids = {get<0>(conflict), get<1>(conflict)};
-    cout << "Conflict : "
-         << "(Agent " << agent_ids[0] << ", Agent " << agent_ids[1] << "), " << endl;
+    // cout << "Conflict : "
+    //      << "(Agent " << agent_ids[0] << ", Agent " << agent_ids[1] << "), " << endl;
     const auto partial_path1 = get<0>(get<2>(conflict));
     const auto partial_path2 = get<1>(get<2>(conflict));
-    cout << "Interval : " << get<1>(partial_path1.front()) << " ~ " << get<1>(partial_path1.back()) << endl;
+    // cout << "Interval : " << get<1>(partial_path1.front()) << " ~ " << get<1>(partial_path1.back()) << endl;
     // print partial path
-    cout << "partial path" << agent_ids[0] << " : ";
-    for (const auto& state : partial_path1) {
-      cout << "(" << get<0>(get<0>(state)) << ", " << get<1>(get<0>(state)) << ", " << get<1>(state) << ")->";
-    }
-    cout << endl;
-    cout << "partial path" << agent_ids[1] << " : ";
-    for (const auto& state : partial_path2) {
-      cout << "(" << get<0>(get<0>(state)) << ", " << get<1>(get<0>(state)) << ", " << get<1>(state) << ")->";
-    }
-    cout << endl;
+    // cout << "partial path" << agent_ids[0] << " : ";
+    // for (const auto& state : partial_path1) {
+    //   cout << "(" << get<0>(get<0>(state)) << ", " << get<1>(get<0>(state)) << ", " << get<1>(state) << ")->";
+    // }
+    // cout << endl;
+    // cout << "partial path" << agent_ids[1] << " : ";
+    // for (const auto& state : partial_path2) {
+    //   cout << "(" << get<0>(get<0>(state)) << ", " << get<1>(get<0>(state)) << ", " << get<1>(state) << ")->";
+    // }
+    // cout << endl;
     vector<Path> partial_paths = {partial_path1, partial_path2};
     for (int i = 0; i < agent_ids.size(); i++) {
       const int j = (i + 1) % 2;
@@ -135,8 +135,6 @@ void SICBS::findConflicts(const Solution& solution, vector<Conflict>& conflicts)
 
       double curr_time = 0.0;
       while (curr_time < max_path_time) {
-        // update prev_point1, next_point1, prev_point2, next_point2
-        // TODO : BUG HERE
         if (curr_time > next_time1) {
           index1++;
           prev_point1 = get<0>(solution[agent1_id][min(static_cast<int>(solution[agent1_id].size()) - 1, index1)]);
@@ -194,17 +192,6 @@ void SICBS::findConflicts(const Solution& solution, vector<Conflict>& conflicts)
         }
         curr_time += 1.0;
       }
-      if (!is_safe) {
-        Point last_point1 = get<0>(solution[agent1_id].back());
-        Point last_point2 = get<0>(solution[agent2_id].back());
-        partial_path1.emplace_back(make_tuple(last_point1, max_path_time));
-        partial_path2.emplace_back(make_tuple(last_point2, max_path_time));
-        conflicts.emplace_back(agent1_id, agent2_id, make_tuple(partial_path1, partial_path2));
-        partial_path1.clear();
-        partial_path2.clear();
-      }
     }
   }
-
-  // cout << "Number of conflicts : " << conflicts.size() << endl;
 }
