@@ -268,7 +268,7 @@ double ConstraintTable::getEarliestArrivalTime(int agent_id, const Point& from_p
                                                double radius) const {
   double earliest_arrival_time = lower_bound;
   double from_time = earliest_arrival_time - expand_time;
-  while (earliest_arrival_time < upper_bound) {
+  while (earliest_arrival_time + env.epsilon < upper_bound) {
     if (!hardConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
       return earliest_arrival_time;
     // if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;

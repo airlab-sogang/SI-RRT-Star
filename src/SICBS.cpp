@@ -100,7 +100,6 @@ Solution SICBS::getInitialSolution() {
     }
     cout << "Agent " << agent_id << " found a path" << endl;
     solution.emplace_back(path);
-    // constraint_table.updateSoftConstraint(agent_id, path);
   }
   return solution;
 }
