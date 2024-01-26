@@ -80,40 +80,51 @@ int main(int argc, char* argv[]) {
   auto start = std::chrono::high_resolution_clock::now();
 
   // SI-CBS
-  SICBS sicbs(env, constraint_table);
-  soluiton = sicbs.run();
+  // SICBS sicbs(env, constraint_table);
+  // soluiton = sicbs.run();
 
   // SI-RRT PP
-  // double sum_of_costs = 0.0;
-  // double makespan = 0.0;
-  // for (int agent_id = 0; agent_id < num_of_agents; ++agent_id) {
-  //   SIRRT sirrt(agent_id, env, constraint_table);
-  //   auto path = sirrt.run();
-  //   if (path.empty()) {
-  //     cout << "No solution for agent " << agent_id << endl;
-  //     return -1;
-  //   }
-  //   cout << "Agent " << agent_id << " found a solution" << endl;
-  //   soluiton.emplace_back(path);
-  //   sum_of_costs += get<1>(path.back());
-  //   makespan = max(makespan, get<1>(path.back()));
-  //   constraint_table.path_table[agent_id] = path;
-  // }
+  double sum_of_costs = 0.0;
+  double makespan = 0.0;
+  for (int agent_id = 0; agent_id < 30; ++agent_id) {
+    SIRRT sirrt(agent_id, env, constraint_table);
+    auto path = sirrt.run();
+    if (path.empty()) {
+      cout << "No solution for agent " << agent_id << endl;
+      return -1;
+    }
+    cout << "Agent " << agent_id << " found a solution" << endl;
+    soluiton.emplace_back(path);
+    sum_of_costs += get<1>(path.back());
+    makespan = max(makespan, get<1>(path.back()));
+    constraint_table.path_table[agent_id] = path;
+  }
+
+  // Test SI-RRT* cost
+  start_points[10] = make_tuple(1.0, 1.0);
+  goal_points[10] = make_tuple(39.0, 39.0);
+  env.start_points[10] = start_points[10];
+  env.goal_points[10] = goal_points[10];
+  cout << "Lower bound: " << calculateDistance(start_points[10], goal_points[10]) * 2 << endl;
+  env.iterations[10] = 1000000;
+  SIRRT sirrt(10, env, constraint_table);
+  auto path = sirrt.run();
+  soluiton.emplace_back(path);
 
   auto stop = std::chrono::high_resolution_clock::now();
   chrono::duration<double, std::ratio<1>> duration = stop - start;
 
-  // cout << "sum of cost: " << sum_of_costs << endl;
-  // cout << "makespan: " << makespan << endl;
-  // cout << "computation time: " << duration.count() << endl;
-  // saveSolution(soluiton, solutionPath);
-  // saveData(sum_of_costs, makespan, duration.count(), dataPath);
-
-  cout << "sum of cost: " << sicbs.sum_of_costs << endl;
-  cout << "makespan: " << sicbs.makespan << endl;
+  cout << "sum of cost: " << sum_of_costs << endl;
+  cout << "makespan: " << makespan << endl;
   cout << "computation time: " << duration.count() << endl;
   saveSolution(soluiton, solutionPath);
-  saveData(sicbs.sum_of_costs, sicbs.makespan, duration.count(), dataPath);
+  saveData(sum_of_costs, makespan, duration.count(), dataPath);
+
+  // cout << "sum of cost: " << sicbs.sum_of_costs << endl;
+  // cout << "makespan: " << sicbs.makespan << endl;
+  // cout << "computation time: " << duration.count() << endl;
+  // saveSolution(soluiton, solutionPath);
+  // saveData(sicbs.sum_of_costs, sicbs.makespan, duration.count(), dataPath);
 
   return 0;
 }

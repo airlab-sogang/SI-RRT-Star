@@ -259,21 +259,6 @@ void ConstraintTable::getSafeIntervalTable(int agent_id, const Point& to_point, 
       insertToSafeIntervalTable(safe_intervals, collision_start_time, get<1>(constrained_path.back()) + 1.0);
       if (safe_intervals.empty()) return;
     }
-    // for (auto [constrained_point, constrained_time] : constrained_path) {
-    //   if (calculateDistance(constrained_point, to_point) < radius + constrained_radius & is_safe) {
-    //     is_safe = false;
-    //     collision_start_time = constrained_time;
-    //   } else if (calculateDistance(constrained_point, to_point) >= radius + constrained_radius & !is_safe) {
-    //     is_safe = true;
-    //     assert(collision_start_time < constrained_time);
-    //     insertToSafeIntervalTable(safe_intervals, collision_start_time, constrained_time);
-    //     if (safe_intervals.empty()) return;
-    //   }
-    // }
-    // if (!is_safe) {
-    //   insertToSafeIntervalTable(safe_intervals, collision_start_time, get<1>(constrained_path.back()));
-    //   if (safe_intervals.empty()) return;
-    // }
   }
 }
 
@@ -283,11 +268,11 @@ double ConstraintTable::getEarliestArrivalTime(int agent_id, const Point& from_p
   double earliest_arrival_time = lower_bound;
   double from_time = earliest_arrival_time - expand_time;
   while (earliest_arrival_time < upper_bound) {
-    if (!hardConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
-      return earliest_arrival_time;
-    // if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;
-    // if (!pathConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
+    // if (!hardConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
     //   return earliest_arrival_time;
+    if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;
+    if (!pathConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
+      return earliest_arrival_time;
     earliest_arrival_time += 1.0;
     from_time += 1.0;
   }

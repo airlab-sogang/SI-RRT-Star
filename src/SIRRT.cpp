@@ -1,19 +1,20 @@
 #include "SIRRT.h"
 
 Path SIRRT::run() {
+  auto start_time = chrono::high_resolution_clock::now();
   release();
   SafeIntervalTable safe_interval_table(env);
 
   // initialize start and goal safe intervals
   vector<Interval> start_safe_intervals;
-  // constraint_table.getSafeIntervalTablePath(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
-  constraint_table.getSafeIntervalTable(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
+  constraint_table.getSafeIntervalTablePath(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
+  // constraint_table.getSafeIntervalTable(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
   assert(!start_safe_intervals.empty());
   safe_interval_table.table[start_point] = start_safe_intervals;
 
   vector<Interval> goal_safe_intervals;
-  // constraint_table.getSafeIntervalTablePath(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
-  constraint_table.getSafeIntervalTable(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
+  constraint_table.getSafeIntervalTablePath(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
+  // constraint_table.getSafeIntervalTable(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
   assert(!goal_safe_intervals.empty());
   safe_interval_table.table[goal_point] = goal_safe_intervals;
 
@@ -60,6 +61,13 @@ Path SIRRT::run() {
       if (goal_node == nullptr || get<0>(new_node->interval) < best_earliest_arrival_time) {
         goal_node = new_node;
         best_earliest_arrival_time = get<0>(new_node->interval);
+        chrono::duration<double, std::ratio<1>> duration = chrono::high_resolution_clock::now() - start_time;
+        cout << "Best earliest arrival time : " << best_earliest_arrival_time << endl;
+        cout << "Elapsed time : " << duration.count() << endl;
+        // if time is up to 5 minutes, break
+        if (duration.count() > 60) {
+          break;
+        }
       }
     } else {
       nodes.push_back(new_node);
@@ -124,8 +132,8 @@ Point SIRRT::steer(const shared_ptr<LLNode>& from_node, const Point& random_poin
   }
 
   vector<Interval> safe_intervals;
-  // constraint_table.getSafeIntervalTablePath(agent_id, to_point, env.radii[agent_id], safe_intervals);
-  constraint_table.getSafeIntervalTable(agent_id, to_point, env.radii[agent_id], safe_intervals);
+  constraint_table.getSafeIntervalTablePath(agent_id, to_point, env.radii[agent_id], safe_intervals);
+  // constraint_table.getSafeIntervalTable(agent_id, to_point, env.radii[agent_id], safe_intervals);
   if (safe_intervals.empty()) {
     return make_tuple(-1.0, -1.0);
   }
