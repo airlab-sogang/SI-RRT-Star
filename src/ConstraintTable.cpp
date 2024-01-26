@@ -81,7 +81,7 @@ bool ConstraintTable::pathConstrained(int agent_id, const Point& from_point, con
           return true;
         }
 
-        curr_time += 1.0;
+        curr_time += env.time_resolution;
       }
     }
   }
@@ -155,7 +155,7 @@ bool ConstraintTable::hardConstrained(int agent_id, const Point& from_point, con
           return true;
         }
 
-        curr_time += 1.0;
+        curr_time += env.time_resolution;
       }
     }
   }
@@ -215,7 +215,7 @@ void ConstraintTable::getSafeIntervalTablePath(int agent_id, const Point& to_poi
                    !is_safe) {
           is_safe = true;
           assert(collision_start_time < interpolated_times[j]);
-          insertToSafeIntervalTable(safe_intervals, collision_start_time, interpolated_times[j]);
+          insertToSafeIntervalTable(safe_intervals, collision_start_time, interpolated_times[j] + env.time_resolution);
           if (safe_intervals.empty()) return;
         }
       }
@@ -250,30 +250,16 @@ void ConstraintTable::getSafeIntervalTable(int agent_id, const Point& to_point, 
         } else if (calculateDistance(to_point, interpolated_points[j]) >= radius + constrained_radius & !is_safe) {
           is_safe = true;
           assert(collision_start_time < interpolated_times[j]);
-          insertToSafeIntervalTable(safe_intervals, collision_start_time, interpolated_times[j] + 1.0);
+          insertToSafeIntervalTable(safe_intervals, collision_start_time, interpolated_times[j] + env.time_resolution);
           if (safe_intervals.empty()) return;
         }
       }
     }
     if (!is_safe) {
-      insertToSafeIntervalTable(safe_intervals, collision_start_time, get<1>(constrained_path.back()) + 1.0);
+      insertToSafeIntervalTable(safe_intervals, collision_start_time,
+                                get<1>(constrained_path.back()) + env.time_resolution);
       if (safe_intervals.empty()) return;
     }
-    // for (auto [constrained_point, constrained_time] : constrained_path) {
-    //   if (calculateDistance(constrained_point, to_point) < radius + constrained_radius & is_safe) {
-    //     is_safe = false;
-    //     collision_start_time = constrained_time;
-    //   } else if (calculateDistance(constrained_point, to_point) >= radius + constrained_radius & !is_safe) {
-    //     is_safe = true;
-    //     assert(collision_start_time < constrained_time);
-    //     insertToSafeIntervalTable(safe_intervals, collision_start_time, constrained_time);
-    //     if (safe_intervals.empty()) return;
-    //   }
-    // }
-    // if (!is_safe) {
-    //   insertToSafeIntervalTable(safe_intervals, collision_start_time, get<1>(constrained_path.back()));
-    //   if (safe_intervals.empty()) return;
-    // }
   }
 }
 
@@ -288,8 +274,8 @@ double ConstraintTable::getEarliestArrivalTime(int agent_id, const Point& from_p
     // if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;
     // if (!pathConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
     //   return earliest_arrival_time;
-    earliest_arrival_time += 1.0;
-    from_time += 1.0;
+    earliest_arrival_time += env.time_resolution;
+    from_time += env.time_resolution;
   }
   return -1.0;
 }

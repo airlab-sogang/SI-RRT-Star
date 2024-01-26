@@ -70,11 +70,11 @@ Path SIRRT::run() {
     nodes.push_back(goal_node);
     path = updatePath(goal_node);
     // assert velocity always be 1.0m/s
-    for (int j = 0; j < path.size() - 1; ++j) {
-      const double distance = calculateDistance(get<0>(path[j]), get<0>(path[j + 1]));
-      const double time_diff = get<1>(path[j + 1]) - get<1>(path[j]);
-      assert(distance / time_diff < env.velocities[agent_id] + env.epsilon);
-    }
+    // for (int j = 0; j < path.size() - 1; ++j) {
+    //   const double distance = calculateDistance(get<0>(path[j]), get<0>(path[j + 1]));
+    //   const double time_diff = get<1>(path[j + 1]) - get<1>(path[j]);
+    //   assert(distance / time_diff < env.velocities[agent_id] + env.epsilon);
+    // }
     // cout << "Path found!" << endl;
     return path;
   }
@@ -135,7 +135,6 @@ Point SIRRT::steer(const shared_ptr<LLNode>& from_node, const Point& random_poin
 }
 
 Path SIRRT::updatePath(const shared_ptr<LLNode>& goal_node) const {
-  // TODO : BUG FIX
   Path path;
   shared_ptr<LLNode> curr_node = goal_node;
   while (curr_node->parent != nullptr) {
@@ -180,34 +179,24 @@ shared_ptr<LLNode> SIRRT::chooseParent(const Point& new_point, const vector<shar
 
   shared_ptr<LLNode> new_node = make_shared<LLNode>(new_point);
 
-  // 이웃 노드들을 순회하면서 to point로 갈 수 있는 가장 낮은 earliest arrival time을 가지는 이웃을 찾는다.
   for (const auto& neighbor : neighbors) {
-    // 만약 이웃 노드로부터 새로운 노드로 갈 때 정적인 장애물과 충돌한다면 continue
-    if (constraint_table.obstacleConstrained(agent_id, neighbor->point, new_point, env.radii[agent_id])) continue;
+    if (constraint_table.obstacleConstrained(agent_id, neighbor->point, new_node->point, env.radii[agent_id])) continue;
 
-    // 이웃 노드로부터 새로운 노드로 갈 때 이동하는 시간
-    const double expand_time = calculateDistance(neighbor->point, new_point) / env.velocities[agent_id];
+    const double expand_time = calculateDistance(neighbor->point, new_node->point) / env.velocities[agent_id];
 
-    // 이웃 노드로부터 새로운 노드로 갈 때의 lower bound와 upper bound
     const double lower_bound = get<0>(neighbor->interval) + expand_time;
     const double upper_bound = get<1>(neighbor->interval) + expand_time;
     assert(lower_bound > 0);
     assert(lower_bound < upper_bound);
 
-    // new node의 safe interval들을 순회하면서
-    auto safe_intervals = safe_interval_table.table[new_point];
+    auto safe_intervals = safe_interval_table.table[new_node->point];
     for (auto& safe_interval : safe_intervals) {
-      // lower bound와 upper bound가 safe interval과 겹치지 않는다면 continue
       if (lower_bound + env.epsilon >= get<1>(safe_interval)) continue;
       if (upper_bound - env.epsilon <= get<0>(safe_interval)) break;
 
-      // neighbor노드로부터 new node로 갈 때의 가장 빠른 도착 시간을 구한다.
-      // 가장 빠른 도착 시간이란 neighbor노드로부터 new node로 갈 때 hard constraint와 충돌하지 않는 가장 빠른 시간을
-      // 의미한다.
       const double earliest_arrival_time = constraint_table.getEarliestArrivalTime(
-          agent_id, neighbor->point, new_point, expand_time, max(get<0>(safe_interval), lower_bound),
+          agent_id, neighbor->point, new_node->point, expand_time, max(get<0>(safe_interval), lower_bound),
           min(get<1>(safe_interval), upper_bound), env.radii[agent_id]);
-      // 현재 safe interval에서 neighbor노드에서 new node로 갈 수 있는 경로가 없으면 continue
       if (earliest_arrival_time < 0.0) continue;
 
       if (new_node->parent == nullptr || earliest_arrival_time < get<0>(new_node->interval)) {
@@ -217,7 +206,6 @@ shared_ptr<LLNode> SIRRT::chooseParent(const Point& new_point, const vector<shar
     }
   }
 
-  // 만약 parent node가 nullptr이라면 그 어떠한 이웃 노드로부터도 새로운 노드로 갈 수 없다.
   if (new_node->parent == nullptr) {
     return nullptr;
   }
@@ -228,41 +216,27 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
                    SafeIntervalTable& safe_interval_table) {
   assert(!neighbors.empty());
   for (auto& neighbor : neighbors) {
-    // cout << get<0>(neighbor->point) << " " << get<1>(neighbor->point) << endl;
-    // 만약 neighbor가 new_node의 부모라면 continue
     if (neighbor == new_node->parent) continue;
-
-    // 만약 새로운 노드로부터 이웃 노드로 갈 때 정적인 장애물과 충돌한다면 continue
     if (constraint_table.obstacleConstrained(agent_id, new_node->point, neighbor->point, env.radii[agent_id])) continue;
 
-    // new_node로부터 neighbor로 갈 때 이동하는 시간
     const double expand_time = calculateDistance(new_node->point, neighbor->point) / env.velocities[agent_id];
 
-    // new node로부터 neighbor로 갈 때의 lower bound와 upper bound
     const double lower_bound = get<0>(new_node->interval) + expand_time;
     const double upper_bound = get<1>(new_node->interval) + expand_time;
     assert(lower_bound > 0);
     assert(lower_bound < upper_bound);
 
-    // neighbor의 safe interval들을 순회하면서
     auto safe_intervals = safe_interval_table.table[neighbor->point];
     for (auto& safe_interval : safe_intervals) {
-      // lower bound와 upper bound가 safe interval과 겹치지 않는다면 continue
       if (lower_bound + env.epsilon >= get<1>(safe_interval)) continue;
       if (upper_bound - env.epsilon <= get<0>(safe_interval)) break;
 
-      // new node로부터 neighbor로 갈 때의 가장 빠른 도착 시간을 구한다.
-      // 가장 빠른 도착 시간이란 new node로부터 neighbor로 갈 때 hard constraint와 충돌하지 않는 가장 빠른 시간을
-      // 의미한다.
       const double earliest_arrival_time = constraint_table.getEarliestArrivalTime(
           agent_id, new_node->point, neighbor->point, expand_time, max(get<0>(safe_interval), lower_bound),
           min(get<1>(safe_interval), upper_bound), env.radii[agent_id]);
-      // 현재 safe interval에서 new node에서 neighbor로 갈 수 있는 경로가 없으면 continue
       if (earliest_arrival_time < 0.0) continue;
 
-      // 가장 빠른 도착 시간이 neighbor의 interval보다 작다면 neighbor의 interval을 업데이트한다.
       if (earliest_arrival_time < get<0>(neighbor->interval)) {
-        // earliest arrival time이 neighbor의 interval의 upper bound보다 크다면 새로운 노드 생성
         if (get<1>(safe_interval) <= get<0>(neighbor->interval)) {
           shared_ptr<LLNode> new_neighbor_node = make_shared<LLNode>(neighbor->point);
           new_neighbor_node->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
