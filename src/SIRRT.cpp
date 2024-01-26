@@ -138,8 +138,8 @@ Path SIRRT::updatePath(const shared_ptr<LLNode>& goal_node) const {
   // TODO : BUG FIX
   Path path;
   shared_ptr<LLNode> curr_node = goal_node;
-  while (curr_node->parent.lock() != nullptr) {
-    const auto prev_node = curr_node->parent.lock();
+  while (curr_node->parent != nullptr) {
+    const auto prev_node = curr_node->parent;
     const auto prev_time = get<0>(prev_node->interval);
     const auto curr_time = get<0>(curr_node->interval);
     assert(prev_time < curr_time);
@@ -149,7 +149,7 @@ Path SIRRT::updatePath(const shared_ptr<LLNode>& goal_node) const {
     if (prev_time + expand_time + env.epsilon < curr_time) {
       path.emplace_back(prev_node->point, curr_time - expand_time);
     }
-    curr_node = curr_node->parent.lock();
+    curr_node = curr_node->parent;
   }
   path.emplace_back(curr_node->point, 0);
   reverse(path.begin(), path.end());
@@ -210,7 +210,7 @@ shared_ptr<LLNode> SIRRT::chooseParent(const Point& new_point, const vector<shar
       // 현재 safe interval에서 neighbor노드에서 new node로 갈 수 있는 경로가 없으면 continue
       if (earliest_arrival_time < 0.0) continue;
 
-      if (new_node->parent.lock() == nullptr || earliest_arrival_time < get<0>(new_node->interval)) {
+      if (new_node->parent == nullptr || earliest_arrival_time < get<0>(new_node->interval)) {
         new_node->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
         new_node->parent = neighbor;
       }
@@ -218,7 +218,7 @@ shared_ptr<LLNode> SIRRT::chooseParent(const Point& new_point, const vector<shar
   }
 
   // 만약 parent node가 nullptr이라면 그 어떠한 이웃 노드로부터도 새로운 노드로 갈 수 없다.
-  if (new_node->parent.lock() == nullptr) {
+  if (new_node->parent == nullptr) {
     return nullptr;
   }
   return new_node;
@@ -230,7 +230,7 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
   for (auto& neighbor : neighbors) {
     // cout << get<0>(neighbor->point) << " " << get<1>(neighbor->point) << endl;
     // 만약 neighbor가 new_node의 부모라면 continue
-    if (neighbor == new_node->parent.lock()) continue;
+    if (neighbor == new_node->parent) continue;
 
     // 만약 새로운 노드로부터 이웃 노드로 갈 때 정적인 장애물과 충돌한다면 continue
     if (constraint_table.obstacleConstrained(agent_id, new_node->point, neighbor->point, env.radii[agent_id])) continue;

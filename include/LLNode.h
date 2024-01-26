@@ -10,7 +10,7 @@
 class LLNode {
  public:
   Point point;
-  weak_ptr<LLNode> parent;
+  shared_ptr<LLNode> parent;
   Interval interval;
 
   explicit LLNode(Point point) : point(std::move(point)), interval(0, numeric_limits<double>::infinity()) {}
