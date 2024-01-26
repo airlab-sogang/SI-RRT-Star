@@ -94,9 +94,9 @@ Solution SICBS::getInitialSolution() {
   Solution solution;
   for (int agent_id = 0; agent_id < env.num_of_robots; ++agent_id) {
     auto path = low_level_planners[agent_id].run();
-    if (path.empty()) {
-      cout << "No path for agent " << agent_id << endl;
-      return {};
+    while (path.empty()) {
+      cout << "Replanning for agent " << agent_id << endl;
+      path = low_level_planners[agent_id].run();
     }
     cout << "Agent " << agent_id << " found a path" << endl;
     solution.emplace_back(path);
