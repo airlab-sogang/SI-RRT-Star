@@ -14,7 +14,7 @@ Solution SICBS::run() {
   open_list.push(root);
   while (!open_list.empty()) {
     auto curr_node = open_list.top();
-    cout << "Cost : " << curr_node.conflicts.size() << endl;
+    // cout << "Cost : " << curr_node.conflicts.size() << endl;
     open_list.pop();
 
     if (curr_node.conflicts.empty()) {
@@ -95,10 +95,10 @@ Solution SICBS::getInitialSolution() {
   for (int agent_id = 0; agent_id < env.num_of_robots; ++agent_id) {
     auto path = low_level_planners[agent_id].run();
     while (path.empty()) {
-      cout << "Replanning for agent " << agent_id << endl;
+      // cout << "Replanning for agent " << agent_id << endl;
       path = low_level_planners[agent_id].run();
     }
-    cout << "Agent " << agent_id << " found a path" << endl;
+    // cout << "Agent " << agent_id << " found a path" << endl;
     solution.emplace_back(path);
   }
   return solution;
