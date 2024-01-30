@@ -12,7 +12,6 @@ bool ConstraintTable::obstacleConstrained(int agent_id, const Point& from_point,
   return false;
 }
 
-// THIS FUNCTION IS FOR PRIORITIZED PLANNING
 bool ConstraintTable::pathConstrained(int agent_id, const Point& from_point, const Point& to_point, double from_time,
                                       double to_time, double radius) const {
   assert(from_time < to_time);
@@ -26,7 +25,7 @@ bool ConstraintTable::pathConstrained(int agent_id, const Point& from_point, con
       auto [next_point, next_time] = path_table[occupied_agent_id][i + 1];
 
       // check if temporal constraint is satisfied
-      if (prev_time > to_time || from_time > next_time) continue;
+      if (prev_time > to_time || from_time >= next_time) continue;
       // check if spatial constraint is satisfied
       if (calculateDistance(from_point, prev_point) >=
           expand_distance + radius + calculateDistance(prev_point, next_point) + env.radii[occupied_agent_id])
@@ -100,7 +99,7 @@ bool ConstraintTable::hardConstrained(int agent_id, const Point& from_point, con
       auto [next_point, next_time] = constrained_path[i + 1];
 
       // check if temporal constraint is satisfied
-      if (prev_time > to_time || from_time > next_time) continue;
+      if (prev_time > to_time || from_time >= next_time) continue;
       // check if spatial constraint is satisfied
       if (calculateDistance(from_point, prev_point) >=
           expand_distance + radius + calculateDistance(prev_point, next_point) + constrained_radius)
