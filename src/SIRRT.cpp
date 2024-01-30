@@ -20,7 +20,7 @@ Path SIRRT::run() {
 
   // initialize start node
   const auto start_node = make_shared<LLNode>(start_point);
-  start_node->interval = make_tuple(0.0, get<1>(start_safe_intervals[0]));
+  start_node->interval = make_tuple(0.0, get<1>(start_safe_intervals.front()));
   nodes.push_back(start_node);
 
   double best_earliest_arrival_time = numeric_limits<double>::infinity();
