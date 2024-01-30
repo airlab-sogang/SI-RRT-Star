@@ -105,9 +105,13 @@ bool ConstraintTable::hardConstrained(int agent_id, const Point& from_point, con
       // check if temporal constraint is satisfied
       if (prev_time > to_time || from_time >= next_time) continue;
       // check if spatial constraint is satisfied
-      if (calculateDistance(from_point, prev_point) >=
-          expand_distance + radius + calculateDistance(prev_point, next_point) + constrained_radius)
-        continue;
+      const Point center1 =
+          make_tuple((get<0>(from_point) + get<0>(to_point)) / 2.0, (get<1>(from_point) + get<1>(to_point)) / 2.0);
+      const double radius1 = calculateDistance(from_point, to_point) / 2.0 + env.radii[agent_id];
+      const Point center2 =
+          make_tuple((get<0>(prev_point) + get<0>(next_point)) / 2.0, (get<1>(prev_point) + get<1>(next_point)) / 2.0);
+      const double radius2 = calculateDistance(prev_point, next_point) / 2.0 + constrained_radius;
+      if (calculateDistance(center1, center2) > radius1 + radius2) continue;
 
       // set check time
       double start_time = -1.0;
@@ -273,11 +277,11 @@ double ConstraintTable::getEarliestArrivalTime(int agent_id, const Point& from_p
   double earliest_arrival_time = lower_bound;
   double from_time = earliest_arrival_time - expand_time;
   while (earliest_arrival_time + env.epsilon < upper_bound) {
-    // if (!hardConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
-    //   return earliest_arrival_time;
-    if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;
-    if (!pathConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
+    if (!hardConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
       return earliest_arrival_time;
+    // if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;
+    // if (!pathConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
+    // return earliest_arrival_time;
     earliest_arrival_time += env.time_resolution;
     from_time += env.time_resolution;
   }
