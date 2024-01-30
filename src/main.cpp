@@ -24,10 +24,10 @@ int main(int argc, char* argv[]) {
 
   string benchmarkPath = "benchmark/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
                          robotnum + "_" + testnum + ".yaml";
-  string solutionPath = "pp_solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
+  string solutionPath = "solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
                         robotnum + "_" + testnum + "_solution.txt";
-  string dataPath = "pp_data/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" +
-                    robotnum + "_" + testnum + "_data.txt";
+  string dataPath = "data/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum +
+                    "_" + testnum + "_data.txt";
   YAML::Node config = YAML::LoadFile(benchmarkPath);
 
   vector<shared_ptr<Obstacle>> obstacles;
@@ -90,10 +90,10 @@ int main(int argc, char* argv[]) {
     SIRRT sirrt(agent_id, env, constraint_table);
     auto path = sirrt.run();
     while (path.empty()) {
-      cout << "Replanning for agent " << agent_id << endl;
+      // cout << "Replanning for agent " << agent_id << endl;
       path = sirrt.run();
     }
-    cout << "Agent " << agent_id << " found a solution" << endl;
+    // cout << "Agent " << agent_id << " found a solution" << endl;
     soluiton.emplace_back(path);
     sum_of_costs += get<1>(path.back());
     makespan = max(makespan, get<1>(path.back()));

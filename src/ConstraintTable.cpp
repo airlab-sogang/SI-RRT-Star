@@ -27,9 +27,13 @@ bool ConstraintTable::pathConstrained(int agent_id, const Point& from_point, con
       // check if temporal constraint is satisfied
       if (prev_time > to_time || from_time >= next_time) continue;
       // check if spatial constraint is satisfied
-      if (calculateDistance(from_point, prev_point) >=
-          expand_distance + radius + calculateDistance(prev_point, next_point) + env.radii[occupied_agent_id])
-        continue;
+      const Point center1 =
+          make_tuple((get<0>(from_point) + get<0>(to_point)) / 2.0, (get<1>(from_point) + get<1>(to_point)) / 2.0);
+      const double radius1 = calculateDistance(from_point, to_point) / 2.0 + env.radii[agent_id];
+      const Point center2 =
+          make_tuple((get<0>(prev_point) + get<0>(next_point)) / 2.0, (get<1>(prev_point) + get<1>(next_point)) / 2.0);
+      const double radius2 = calculateDistance(prev_point, next_point) / 2.0 + env.radii[occupied_agent_id];
+      if (calculateDistance(center1, center2) > radius1 + radius2) continue;
 
       // set check time
       double start_time = -1.0;
@@ -173,9 +177,10 @@ bool ConstraintTable::targetConstrained(int agent_id, const Point& from_point, c
     // check if temporal constraint is satisfied
     if (last_time > to_time) continue;
     // check if spatial constraint is satisfied
-    if (calculateDistance(from_point, last_point) >=
-        radius + calculateDistance(from_point, to_point) + env.radii[occupied_agent_id])
-      continue;
+    const Point center1 =
+        make_tuple((get<0>(from_point) + get<0>(to_point)) / 2.0, (get<1>(from_point) + get<1>(to_point)) / 2.0);
+    const double radius1 = calculateDistance(from_point, to_point) / 2.0 + env.radii[agent_id];
+    if (calculateDistance(center1, last_point) > radius1 + env.radii[occupied_agent_id]) continue;
 
     for (int i = 0; i < interpolated_points.size(); ++i) {
       if (last_time > interpolated_times[i]) continue;
@@ -286,14 +291,11 @@ void ConstraintTable::insertToSafeIntervalTable(vector<Interval>& safe_intervals
     if (t_max < get<0>(safe_intervals[i])) break;
     if (t_min <= get<0>(safe_intervals[i]) && t_max >= get<1>(safe_intervals[i])) {
       safe_intervals.erase(safe_intervals.begin() + i);
-    }
-    if (t_min <= get<0>(safe_intervals[i]) && t_max < get<1>(safe_intervals[i])) {
+    } else if (t_min <= get<0>(safe_intervals[i]) && t_max < get<1>(safe_intervals[i])) {
       get<0>(safe_intervals[i]) = t_max;
-    }
-    if (t_min > get<0>(safe_intervals[i]) && t_max >= get<1>(safe_intervals[i])) {
+    } else if (t_min > get<0>(safe_intervals[i]) && t_max >= get<1>(safe_intervals[i])) {
       get<1>(safe_intervals[i]) = t_min;
-    }
-    if (t_min > get<0>(safe_intervals[i]) && t_max < get<1>(safe_intervals[i])) {
+    } else if (t_min > get<0>(safe_intervals[i]) && t_max < get<1>(safe_intervals[i])) {
       safe_intervals.insert(safe_intervals.begin() + i + 1, make_tuple(t_max, get<1>(safe_intervals[i])));
       get<1>(safe_intervals[i]) = t_min;
     }

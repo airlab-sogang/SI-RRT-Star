@@ -36,7 +36,9 @@ Path SIRRT::run() {
     // SIRRT*
     vector<shared_ptr<LLNode>> neighbors;
     getNeighbors(new_point, neighbors);
-    assert(!neighbors.empty());
+    if (neighbors.empty()) {
+      continue;
+    }
     shared_ptr<LLNode> new_node = chooseParent(new_point, neighbors, safe_interval_table);
     if (new_node == nullptr) {
       continue;
@@ -147,16 +149,13 @@ Path SIRRT::updatePath(const shared_ptr<LLNode>& goal_node) const {
 void SIRRT::getNeighbors(Point point, vector<shared_ptr<LLNode>>& neighbors) const {
   assert(!nodes.empty());
   assert(neighbors.empty());
-  // const double connection_radius =
-  //     min(env.max_expand_distances[agent_id], 50 * sqrt(log(nodes.size()) / nodes.size())) + env.threshold;
+
   const double connection_radius = env.max_expand_distances[agent_id] + env.epsilon;
   for (const auto& node : nodes) {
     const double distance = calculateDistance(node->point, point);
     if (distance < connection_radius) {
+      if (constraint_table.obstacleConstrained(agent_id, node->point, point, env.radii[agent_id])) continue;
       neighbors.emplace_back(node);
-    }
-    if (neighbors.size() >= 5) {
-      break;
     }
   }
 }
@@ -168,8 +167,6 @@ shared_ptr<LLNode> SIRRT::chooseParent(const Point& new_point, const vector<shar
   shared_ptr<LLNode> new_node = make_shared<LLNode>(new_point);
 
   for (const auto& neighbor : neighbors) {
-    if (constraint_table.obstacleConstrained(agent_id, neighbor->point, new_node->point, env.radii[agent_id])) continue;
-
     const double expand_time = calculateDistance(neighbor->point, new_node->point) / env.velocities[agent_id];
 
     const double lower_bound = get<0>(neighbor->interval) + expand_time;
@@ -205,8 +202,6 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
   assert(!neighbors.empty());
   for (auto& neighbor : neighbors) {
     if (neighbor == new_node->parent) continue;
-    if (constraint_table.obstacleConstrained(agent_id, new_node->point, neighbor->point, env.radii[agent_id])) continue;
-
     const double expand_time = calculateDistance(new_node->point, neighbor->point) / env.velocities[agent_id];
 
     const double lower_bound = get<0>(new_node->interval) + expand_time;
