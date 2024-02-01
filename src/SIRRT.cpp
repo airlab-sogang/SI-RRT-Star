@@ -1,6 +1,7 @@
 #include "SIRRT.h"
 
 Path SIRRT::run() {
+  start_time = chrono::high_resolution_clock::now();
   release();
   SafeIntervalTable safe_interval_table(env);
 
@@ -23,7 +24,7 @@ Path SIRRT::run() {
   start_node->interval = make_tuple(0.0, get<1>(start_safe_intervals.front()));
   nodes.push_back(start_node);
 
-  double best_earliest_arrival_time = numeric_limits<double>::infinity();
+  // double best_earliest_arrival_time = numeric_limits<double>::infinity();
   int iteration = env.iterations[agent_id];
   while (iteration--) {
     Point random_point = generateRandomPoint();
@@ -44,15 +45,27 @@ Path SIRRT::run() {
       continue;
     }
     rewire(new_node, neighbors, safe_interval_table);
+    nodes.push_back(new_node);
 
     // check goal
     if (calculateDistance(new_node->point, goal_point) < env.epsilon) {
-      if (goal_node == nullptr || get<0>(new_node->interval) < best_earliest_arrival_time) {
+      if (goal_node == nullptr || get<0>(new_node->interval) <= get<0>(goal_node->interval)) {
+        // erase old goal node in nodes
+        if (goal_node != nullptr) {
+          nodes.erase(remove(nodes.begin(), nodes.end(), goal_node), nodes.end());
+        }
         goal_node = new_node;
-        best_earliest_arrival_time = get<0>(new_node->interval);
+        if (agent_id == 30) {
+          chrono::duration<double, std::ratio<1>> duration = chrono::high_resolution_clock::now() - start_time;
+          cout << "Best earliest arrival time : " << get<0>(goal_node->interval) << endl;
+          cout << "Elapsed time : " << duration.count() << endl;
+          cout << "Samples : " << nodes.size() << endl;
+          if (duration.count() > 10) {
+            break;
+          }
+        }
+        // env.goal_sample_rates[agent_id] = env.goal_sample_rates[agent_id] * 0.99;
       }
-    } else {
-      nodes.push_back(new_node);
     }
   }
 
@@ -228,6 +241,14 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
         } else {
           neighbor->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
           neighbor->parent = new_node;
+        }
+        if (neighbor == goal_node) {
+          if (agent_id == 30) {
+            chrono::duration<double, std::ratio<1>> duration = chrono::high_resolution_clock::now() - start_time;
+            cout << "Best earliest arrival time : " << get<0>(neighbor->interval) << endl;
+            cout << "Elapsed time : " << duration.count() << endl;
+            cout << "Samples : " << nodes.size() << endl;
+          }
         }
         break;
       }

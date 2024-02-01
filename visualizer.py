@@ -4,17 +4,17 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
-from matplotlib.patches import Circle, Rectangle
+from matplotlib.patches import Circle
 
-sample = 10
+sample = 5
 
-mapname = "Free"
-obs = "0"
-robotnum = "10"
+mapname = "CircleEnv"
+obs = "20"
+robotnum = "100"
 testnum = "0"
 
 benchmarkPath = "benchmark/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + ".yaml"
-solutionPath = "pp_solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + "_solution.txt"
+solutionPath = "solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + "_solution.txt"
 
 # 파일에서 데이터 읽기
 # file_path = 'solution/RectEnv_10/agents80/RectEnv_10_80_0_solution.txt'
@@ -126,27 +126,27 @@ def animate(frame):
     return [time_text] + list(circles.values()) + annotations
 
 
-def add_obstacles(ax, yaml_file_path):
-    with open(yaml_file_path, 'r') as file:
-        yaml_data = yaml.safe_load(file)
-
-    for obstacle_data in yaml_data['obstacles']:
-        center = obstacle_data['center']
-        width = obstacle_data['width']
-        height = obstacle_data['height']
-        rectangle = Rectangle((center[0] - width / 2, center[1] - height / 2), width, height, fc='black')
-        ax.add_patch(rectangle)
-
-
 # def add_obstacles(ax, yaml_file_path):
 #     with open(yaml_file_path, 'r') as file:
 #         yaml_data = yaml.safe_load(file)
 #
 #     for obstacle_data in yaml_data['obstacles']:
 #         center = obstacle_data['center']
-#         radius = obstacle_data['radius']
-#         circle = Circle((center[0], center[1]), radius, fc='black')
-#         ax.add_patch(circle)
+#         width = obstacle_data['width']
+#         height = obstacle_data['height']
+#         rectangle = Rectangle((center[0] - width / 2, center[1] - height / 2), width, height, fc='black')
+#         ax.add_patch(rectangle)
+
+
+def add_obstacles(ax, yaml_file_path):
+    with open(yaml_file_path, 'r') as file:
+        yaml_data = yaml.safe_load(file)
+
+    for obstacle_data in yaml_data['obstacles']:
+        center = obstacle_data['center']
+        radius = obstacle_data['radius']
+        circle = Circle((center[0], center[1]), radius, fc='black')
+        ax.add_patch(circle)
 
 
 # 기존 애니메이션 구성 코드는 그대로 유지

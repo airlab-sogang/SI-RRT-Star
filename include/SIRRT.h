@@ -24,6 +24,8 @@ class SIRRT {
   int agent_id;
   SharedEnv& env;
   ConstraintTable& constraint_table;
+  chrono::high_resolution_clock::time_point start_time;
+  int iteration = 0;
 
   SIRRT(int agent_id, SharedEnv& env, ConstraintTable& constraint_table)
       : dis_width(env.radii[agent_id], env.width - env.radii[agent_id]),
