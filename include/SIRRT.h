@@ -7,6 +7,8 @@
 
 #include <SafeIntervalTable.h>
 
+#include <nlohmann/json.hpp>
+
 #include "ConstraintTable.h"
 #include "LLNode.h"
 #include "common.h"
@@ -26,6 +28,9 @@ class SIRRT {
   ConstraintTable& constraint_table;
   chrono::high_resolution_clock::time_point start_time;
   int iteration = 0;
+  int node_id = 0;
+  nlohmann::json data;
+  nlohmann::json iteration_data;
 
   SIRRT(int agent_id, SharedEnv& env, ConstraintTable& constraint_table)
       : dis_width(env.radii[agent_id], env.width - env.radii[agent_id]),

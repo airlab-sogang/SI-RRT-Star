@@ -1,6 +1,8 @@
 #include "SIRRT.h"
 
 Path SIRRT::run() {
+  iteration_data["nodes"] = {};
+  iteration_data["edges"] = {};
   start_time = chrono::high_resolution_clock::now();
   release();
   SafeIntervalTable safe_interval_table(env);
@@ -23,6 +25,9 @@ Path SIRRT::run() {
   const auto start_node = make_shared<LLNode>(start_point);
   start_node->interval = make_tuple(0.0, get<1>(start_safe_intervals.front()));
   nodes.push_back(start_node);
+  start_node->node_id = node_id;
+  node_id++;
+  iteration_data["nodes"].push_back({start_node->node_id, {get<0>(start_node->point), get<1>(start_node->point), 0.0}});
 
   // double best_earliest_arrival_time = numeric_limits<double>::infinity();
   int iteration = env.iterations[agent_id];
@@ -44,12 +49,18 @@ Path SIRRT::run() {
     if (new_node == nullptr) {
       continue;
     }
+    new_node->node_id = node_id;
+    node_id++;
+    iteration_data["nodes"].push_back(
+        {new_node->node_id, {get<0>(new_point), get<1>(new_point), get<0>(new_node->interval)}});
+    iteration_data["edges"].push_back({new_node->node_id, new_node->parent->node_id});
+
     rewire(new_node, neighbors, safe_interval_table);
     nodes.push_back(new_node);
 
     // check goal
     if (calculateDistance(new_node->point, goal_point) < env.epsilon) {
-      if (goal_node == nullptr || get<0>(new_node->interval) <= get<0>(goal_node->interval)) {
+      if (goal_node == nullptr || get<0>(new_node->interval) < get<0>(goal_node->interval)) {
         // erase old goal node in nodes
         if (goal_node != nullptr) {
           nodes.erase(remove(nodes.begin(), nodes.end(), goal_node), nodes.end());
@@ -60,9 +71,6 @@ Path SIRRT::run() {
           cout << "Best earliest arrival time : " << get<0>(goal_node->interval) << endl;
           cout << "Elapsed time : " << duration.count() << endl;
           cout << "Samples : " << nodes.size() << endl;
-          if (duration.count() > 10) {
-            break;
-          }
         }
         // env.goal_sample_rates[agent_id] = env.goal_sample_rates[agent_id] * 0.99;
       }
@@ -70,7 +78,7 @@ Path SIRRT::run() {
   }
 
   if (goal_node != nullptr) {
-    nodes.push_back(goal_node);
+    // nodes.push_back(goal_node);
     path = updatePath(goal_node);
     return path;
   }
@@ -180,6 +188,10 @@ shared_ptr<LLNode> SIRRT::chooseParent(const Point& new_point, const vector<shar
   shared_ptr<LLNode> new_node = make_shared<LLNode>(new_point);
 
   for (const auto& neighbor : neighbors) {
+    if (neighbor->point == new_point) {
+      continue;
+    }
+
     const double expand_time = calculateDistance(neighbor->point, new_node->point) / env.velocities[agent_id];
 
     const double lower_bound = get<0>(neighbor->interval) + expand_time;
@@ -214,6 +226,10 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
                    SafeIntervalTable& safe_interval_table) {
   assert(!neighbors.empty());
   for (auto& neighbor : neighbors) {
+    if (neighbor->point == new_node->point) {
+      continue;
+    }
+
     if (neighbor == new_node->parent) continue;
     const double expand_time = calculateDistance(new_node->point, neighbor->point) / env.velocities[agent_id];
 
@@ -233,14 +249,23 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
       if (earliest_arrival_time < 0.0) continue;
 
       if (earliest_arrival_time < get<0>(neighbor->interval)) {
+        iteration_data["edges"].push_back({neighbor->node_id, neighbor->parent->node_id});
+
         if (get<1>(safe_interval) <= get<0>(neighbor->interval)) {
           shared_ptr<LLNode> new_neighbor_node = make_shared<LLNode>(neighbor->point);
           new_neighbor_node->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
           new_neighbor_node->parent = new_node;
           nodes.push_back(new_neighbor_node);
+          new_neighbor_node->node_id = node_id;
+          iteration_data["nodes"].push_back({new_neighbor_node->node_id,
+                                             {get<0>(new_neighbor_node->point), get<1>(new_neighbor_node->point),
+                                              get<0>(new_neighbor_node->interval)}});
+          iteration_data["edges"].push_back({new_neighbor_node->node_id, new_neighbor_node->parent->node_id});
+          node_id++;
         } else {
           neighbor->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
           neighbor->parent = new_node;
+          iteration_data["edges"].push_back({neighbor->node_id, neighbor->parent->node_id});
         }
         if (neighbor == goal_node) {
           if (agent_id == 30) {

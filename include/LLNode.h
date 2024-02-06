@@ -12,6 +12,7 @@ class LLNode {
   Point point;
   shared_ptr<LLNode> parent;
   Interval interval;
+  int node_id;
 
   explicit LLNode(Point point) : point(std::move(point)), interval(0, numeric_limits<double>::infinity()) {}
 };

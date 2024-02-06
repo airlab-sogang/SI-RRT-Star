@@ -180,23 +180,29 @@ int main(int argc, char *argv[]) {
   //   makespan = max(makespan, get<1>(path.back()));
   //   constraint_table.path_table[agent_id] = path;
   // }
-  std::string fileName = "dynamicFree.txt";
-  Solution solution = parseFile(fileName);
-  for (int agent_id = 0; agent_id < solution.size(); ++agent_id) {
-    constraint_table.path_table[agent_id] = solution[agent_id];
-  }
+  // std::string fileName = "dynamicFree.txt";
+  // Solution solution = parseFile(fileName);
+  // for (int agent_id = 0; agent_id < solution.size(); ++agent_id) {
+  //   constraint_table.path_table[agent_id] = solution[agent_id];
+  // }
 
   // Test SI-RRT* cost
   start_points[30] = make_tuple(1.0, 1.0);
   goal_points[30] = make_tuple(39.0, 39.0);
-  goal_sample_rates[30] = 5.0;
+  goal_sample_rates[30] = 30.0;
   env.start_points[30] = start_points[30];
   env.goal_points[30] = goal_points[30];
-  env.iterations[30] = 1000000;
+  env.iterations[30] = 2500;
   env.goal_sample_rates[30] = goal_sample_rates[30];
   SIRRT sirrt(30, env, constraint_table);
   auto path = sirrt.run();
+  if (path.empty()) {
+    cout << "No solution" << endl;
+    return 0;
+  }
   soluiton.emplace_back(path);
+  std::ofstream o("rrt_data.json");
+  o << sirrt.iteration_data.dump(2);
 
   auto stop = std::chrono::high_resolution_clock::now();
   chrono::duration<double, std::ratio<1>> duration = stop - start;
