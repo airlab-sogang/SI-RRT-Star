@@ -6,15 +6,15 @@ import numpy as np
 import yaml
 from matplotlib.patches import Circle, Rectangle
 
-sample = 10
+sample = 5
 
-mapname = "Free"
-obs = "0"
-robotnum = "10"
+mapname = "RectEnv"
+obs = "20"
+robotnum = "100"
 testnum = "0"
 
 benchmarkPath = "benchmark/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + ".yaml"
-solutionPath = "pp_solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + "_solution.txt"
+solutionPath = "solution/" + mapname + "_" + obs + "/agents" + robotnum + "/" + mapname + "_" + obs + "_" + robotnum + "_" + testnum + "_solution.txt"
 
 # 파일에서 데이터 읽기
 # file_path = 'solution/RectEnv_10/agents80/RectEnv_10_80_0_solution.txt'
@@ -101,17 +101,17 @@ def init():
 
 def animate(frame):
     time = frame / sample
+    # print remaining time
+    print(f'Remaining time: {total_time - time:.2f}s', end='\r')
     time_text.set_text(f'Time: {time:.2f}s')
-    annotations = []
     for agent_id, path in agents.items():
         if not path:
-            continue  # 경로가 없는 에이전트는 무시
+            agent_annotations[agent_id].set_visible(False)  # Hide text for agents without a path
+            continue
         position = next(((x, y) for x, y, t in path if t >= time), path[-1][:2])
         circle = circles[agent_id]
         circle.center = position
-        annotation = ax.text(position[0], position[1], str(agent_id), color='white', fontsize=8, ha='center',
-                             va='center')
-        annotations.append(annotation)
+        agent_annotations[agent_id].set_position(position)
     # check if agents have collided
 
     for agent_id, circle in circles.items():
@@ -123,7 +123,7 @@ def animate(frame):
                 other_agent_id] * 0.85:
                 circle.set_facecolor('red')
                 print(f'Collision between agents {agent_id} and {other_agent_id} at time {time:.2f}s')
-    return [time_text] + list(circles.values()) + annotations
+    return [time_text] + list(circles.values()) + list(agent_annotations.values())
 
 
 def add_obstacles(ax, yaml_file_path):
@@ -165,6 +165,11 @@ for agent_id, path in agents.items():
         circles[agent_id] = Circle((0, 0), radius, fc='blue')
     ax.add_patch(circles.get(agent_id, Circle((0, 0), 0)))
 
-ani = animation.FuncAnimation(fig, animate, frames=int(total_time * sample), init_func=init, blit=True, interval=1)
+agent_annotations = {}
+for agent_id in agents.keys():
+    agent_annotations[agent_id] = ax.text(0, 0, str(agent_id), color='white', fontsize=8, ha='center', va='center',
+                                          visible=True)
 
-plt.show()
+ani = animation.FuncAnimation(fig, animate, frames=int(total_time * sample), init_func=init, blit=True, interval=1)
+ani.save('animation.mp4', writer='pillow', fps=sample)
+# plt.show()
