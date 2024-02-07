@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     max_expand_distances.emplace_back(5.0);
     velocities.emplace_back(0.5);
     thresholds.emplace_back(0.01);
-    iterations.emplace_back(1500);
+    iterations.emplace_back(1000);
     goal_sample_rates.emplace_back(10.0);
   }
 
@@ -166,20 +166,19 @@ int main(int argc, char *argv[]) {
   //   makespan = max(makespan, get<1>(path.back()));
   //   constraint_table.path_table[agent_id] = path;
   // }
-
-  // for (int agent_id = 0; agent_id < 30; ++agent_id) {
-  //   SIRRT sirrt(agent_id, env, constraint_table);
-  //   auto path = sirrt.run();
-  //   while (path.empty()) {
-  //     cout << "Replanning for agent " << agent_id << endl;
-  //     path = sirrt.run();
-  //   }
-  //   cout << "Agent " << agent_id << " found a solution" << endl;
-  //   soluiton.emplace_back(path);
-  //   sum_of_costs += get<1>(path.back());
-  //   makespan = max(makespan, get<1>(path.back()));
-  //   constraint_table.path_table[agent_id] = path;
-  // }
+  for (int agent_id = 0; agent_id < 20; ++agent_id) {
+    SIRRT sirrt(agent_id, env, constraint_table);
+    auto path = sirrt.run();
+    while (path.empty()) {
+      cout << "Replanning for agent " << agent_id << endl;
+      path = sirrt.run();
+    }
+    cout << "Agent " << agent_id << " found a solution" << endl;
+    soluiton.emplace_back(path);
+    sum_of_costs += get<1>(path.back());
+    makespan = max(makespan, get<1>(path.back()));
+    constraint_table.path_table[agent_id] = path;
+  }
   // std::string fileName = "dynamicFree.txt";
   // Solution solution = parseFile(fileName);
   // for (int agent_id = 0; agent_id < solution.size(); ++agent_id) {
@@ -187,22 +186,17 @@ int main(int argc, char *argv[]) {
   // }
 
   // Test SI-RRT* cost
-  start_points[30] = make_tuple(1.0, 1.0);
-  goal_points[30] = make_tuple(39.0, 39.0);
-  goal_sample_rates[30] = 30.0;
-  env.start_points[30] = start_points[30];
-  env.goal_points[30] = goal_points[30];
-  env.iterations[30] = 2500;
-  env.goal_sample_rates[30] = goal_sample_rates[30];
+  env.start_points[30] = make_tuple(1.0, 1.0);
+  env.goal_points[30] = make_tuple(39.0, 39.0);
+  env.goal_sample_rates[30] = 30.0;
   SIRRT sirrt(30, env, constraint_table);
   auto path = sirrt.run();
   if (path.empty()) {
     cout << "No solution" << endl;
-    return 0;
   }
   soluiton.emplace_back(path);
   std::ofstream o("rrt_data.json");
-  o << sirrt.iteration_data.dump(2);
+  o << sirrt.data.dump(2);
 
   auto stop = std::chrono::high_resolution_clock::now();
   chrono::duration<double, std::ratio<1>> duration = stop - start;

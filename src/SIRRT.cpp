@@ -32,6 +32,12 @@ Path SIRRT::run() {
   // double best_earliest_arrival_time = numeric_limits<double>::infinity();
   int iteration = env.iterations[agent_id];
   while (iteration--) {
+    // update data only the size of nodes are different.
+    // get last iteration data from data
+    auto last_iteration_nodes_size = !data.empty() ? data.back()["nodes"].size() : 0;
+    if (iteration_data["nodes"].size() != last_iteration_nodes_size) {
+      data.push_back(iteration_data);
+    }
     Point random_point = generateRandomPoint();
     const shared_ptr<LLNode> nearest_node = getNearestNode(random_point);
     Point new_point = steer(nearest_node, random_point, safe_interval_table);
@@ -66,12 +72,10 @@ Path SIRRT::run() {
           nodes.erase(remove(nodes.begin(), nodes.end(), goal_node), nodes.end());
         }
         goal_node = new_node;
-        if (agent_id == 30) {
-          chrono::duration<double, std::ratio<1>> duration = chrono::high_resolution_clock::now() - start_time;
-          cout << "Best earliest arrival time : " << get<0>(goal_node->interval) << endl;
-          cout << "Elapsed time : " << duration.count() << endl;
-          cout << "Samples : " << nodes.size() << endl;
-        }
+        chrono::duration<double, std::ratio<1>> duration = chrono::high_resolution_clock::now() - start_time;
+        cout << "Best earliest arrival time : " << get<0>(goal_node->interval) << endl;
+        cout << "Elapsed time : " << duration.count() << endl;
+        cout << "Samples : " << nodes.size() << endl;
         // env.goal_sample_rates[agent_id] = env.goal_sample_rates[agent_id] * 0.99;
       }
     }
@@ -249,8 +253,9 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
       if (earliest_arrival_time < 0.0) continue;
 
       if (earliest_arrival_time < get<0>(neighbor->interval)) {
-        iteration_data["edges"].push_back({neighbor->node_id, neighbor->parent->node_id});
-
+        // remove old edge
+        assert(find(iteration_data["edges"].begin(), iteration_data["edges"].end(),
+                    vector<int>{neighbor->node_id, neighbor->parent->node_id}) != iteration_data["edges"].end());
         if (get<1>(safe_interval) <= get<0>(neighbor->interval)) {
           shared_ptr<LLNode> new_neighbor_node = make_shared<LLNode>(neighbor->point);
           new_neighbor_node->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
@@ -260,20 +265,23 @@ void SIRRT::rewire(const shared_ptr<LLNode>& new_node, const vector<shared_ptr<L
           iteration_data["nodes"].push_back({new_neighbor_node->node_id,
                                              {get<0>(new_neighbor_node->point), get<1>(new_neighbor_node->point),
                                               get<0>(new_neighbor_node->interval)}});
+          assert(get<0>(new_neighbor_node->parent->interval) < get<0>(new_neighbor_node->interval));
           iteration_data["edges"].push_back({new_neighbor_node->node_id, new_neighbor_node->parent->node_id});
           node_id++;
         } else {
+          iteration_data["edges"].erase(remove(iteration_data["edges"].begin(), iteration_data["edges"].end(),
+                                               vector<int>{neighbor->node_id, neighbor->parent->node_id}),
+                                        iteration_data["edges"].end());
           neighbor->interval = make_tuple(earliest_arrival_time, get<1>(safe_interval));
           neighbor->parent = new_node;
+          assert(get<0>(neighbor->parent->interval) < get<0>(neighbor->interval));
           iteration_data["edges"].push_back({neighbor->node_id, neighbor->parent->node_id});
         }
         if (neighbor == goal_node) {
-          if (agent_id == 30) {
-            chrono::duration<double, std::ratio<1>> duration = chrono::high_resolution_clock::now() - start_time;
-            cout << "Best earliest arrival time : " << get<0>(neighbor->interval) << endl;
-            cout << "Elapsed time : " << duration.count() << endl;
-            cout << "Samples : " << nodes.size() << endl;
-          }
+          chrono::duration<double, std::ratio<1>> duration = chrono::high_resolution_clock::now() - start_time;
+          cout << "Best earliest arrival time : " << get<0>(neighbor->interval) << endl;
+          cout << "Elapsed time : " << duration.count() << endl;
+          cout << "Samples : " << nodes.size() << endl;
         }
         break;
       }
