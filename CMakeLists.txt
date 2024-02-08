@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SI_CBS)
+project(SI-RRTStar)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -14,7 +14,7 @@ include_directories(${YAML_CPP_INCLUDE_DIR})
 
 file(GLOB SOURCES "src/*.cpp")
 
-add_executable(SI-CBS ${SOURCES})
+add_executable(SI-RRTStar ${SOURCES})
 
-target_link_libraries(SI-CBS ${Boost_LIBRARIES})
-target_link_libraries(SI-CBS ${YAML_CPP_LIBRARIES})
+target_link_libraries(SI-RRTStar ${Boost_LIBRARIES})
+target_link_libraries(SI-RRTStar ${YAML_CPP_LIBRARIES})
