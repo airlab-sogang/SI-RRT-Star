@@ -7,15 +7,10 @@ include_directories("include")
 
 find_package(Boost REQUIRED)
 
-set(YAML_CPP_INCLUDE_DIR "/opt/homebrew/Cellar/yaml-cpp/0.8.0/include")
-set(YAML_CPP_LIBRARIES "/opt/homebrew/Cellar/yaml-cpp/0.8.0/lib/libyaml-cpp.dylib")
-
-#find_package(yaml-cpp REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${YAML_CPP_INCLUDE_DIR})
-
-list(APPEND CMAKE_PREFIX_PATH "/opt/homebrew/Cellar/yaml-cpp/0.8.0/lib/cmake/yaml-cpp")
 
 file(GLOB SOURCES "src/*.cpp")
 
