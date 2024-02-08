@@ -252,19 +252,21 @@ void ConstraintTable::getSafeIntervalTable(int agent_id, const Point& to_point, 
       interpolatePointTime(agent_id, prev_point, next_point, prev_time, next_time, interpolated_points,
                            interpolated_times);
       for (int j = 0; j < interpolated_points.size(); ++j) {
-        if (calculateDistance(to_point, interpolated_points[j]) < radius + constrained_radius & is_safe) {
+        if (calculateDistance(to_point, interpolated_points[j]) < radius + constrained_radius + env.epsilon & is_safe) {
           is_safe = false;
           collision_start_time = interpolated_times[j];
-        } else if (calculateDistance(to_point, interpolated_points[j]) >= radius + constrained_radius & !is_safe) {
+        } else if (calculateDistance(to_point, interpolated_points[j]) >= radius + constrained_radius + env.epsilon &
+                   !is_safe) {
           is_safe = true;
           assert(collision_start_time < interpolated_times[j]);
-          insertToSafeIntervalTable(safe_intervals, collision_start_time, interpolated_times[j] + env.time_resolution);
+          insertToSafeIntervalTable(safe_intervals, collision_start_time - env.time_resolution,
+                                    interpolated_times[j] + env.time_resolution);
           if (safe_intervals.empty()) return;
         }
       }
     }
     if (!is_safe) {
-      insertToSafeIntervalTable(safe_intervals, collision_start_time,
+      insertToSafeIntervalTable(safe_intervals, collision_start_time - env.time_resolution,
                                 get<1>(constrained_path.back()) + env.time_resolution);
       if (safe_intervals.empty()) return;
     }
@@ -277,11 +279,14 @@ double ConstraintTable::getEarliestArrivalTime(int agent_id, const Point& from_p
   double earliest_arrival_time = lower_bound;
   double from_time = earliest_arrival_time - expand_time;
   while (earliest_arrival_time + env.epsilon < upper_bound) {
-    // if (!hardConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
-    //   return earliest_arrival_time;
-    if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;
-    if (!pathConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
-      return earliest_arrival_time;
+    if (env.algorithm == "pp") {
+      if (targetConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius)) return -1.0;
+      if (!pathConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
+        return earliest_arrival_time;
+    } else if (env.algorithm == "cbs") {
+      if (!hardConstrained(agent_id, from_point, to_point, from_time, earliest_arrival_time, radius))
+        return earliest_arrival_time;
+    }
     earliest_arrival_time += env.time_resolution;
     from_time += env.time_resolution;
   }

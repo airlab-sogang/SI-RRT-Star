@@ -6,14 +6,18 @@ Path SIRRT::run() {
 
   // initialize start and goal safe intervals
   vector<Interval> start_safe_intervals;
-  constraint_table.getSafeIntervalTablePath(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
-  // constraint_table.getSafeIntervalTable(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
+  if (env.algorithm == "pp")
+    constraint_table.getSafeIntervalTablePath(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
+  else if (env.algorithm == "cbs")
+    constraint_table.getSafeIntervalTable(agent_id, start_point, env.radii[agent_id], start_safe_intervals);
   assert(!start_safe_intervals.empty());
   safe_interval_table.table[start_point] = {make_tuple(0.0, get<1>(start_safe_intervals.front()))};
 
   vector<Interval> goal_safe_intervals;
-  constraint_table.getSafeIntervalTablePath(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
-  // constraint_table.getSafeIntervalTable(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
+  if (env.algorithm == "pp")
+    constraint_table.getSafeIntervalTablePath(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
+  else if (env.algorithm == "cbs")
+    constraint_table.getSafeIntervalTable(agent_id, goal_point, env.radii[agent_id], goal_safe_intervals);
   assert(!goal_safe_intervals.empty());
   safe_interval_table.table[goal_point] = {
       make_tuple(get<0>(goal_safe_intervals.back()), numeric_limits<double>::infinity())};
@@ -111,8 +115,10 @@ Point SIRRT::steer(const shared_ptr<LLNode>& from_node, const Point& random_poin
   }
 
   vector<Interval> safe_intervals;
-  constraint_table.getSafeIntervalTablePath(agent_id, to_point, env.radii[agent_id], safe_intervals);
-  // constraint_table.getSafeIntervalTable(agent_id, to_point, env.radii[agent_id], safe_intervals);
+  if (env.algorithm == "pp")
+    constraint_table.getSafeIntervalTablePath(agent_id, to_point, env.radii[agent_id], safe_intervals);
+  else if (env.algorithm == "cbs")
+    constraint_table.getSafeIntervalTable(agent_id, to_point, env.radii[agent_id], safe_intervals);
   if (safe_intervals.empty()) {
     return make_tuple(-1.0, -1.0);
   }

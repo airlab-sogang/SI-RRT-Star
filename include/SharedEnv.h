@@ -1,6 +1,8 @@
 #ifndef SHAREDENV_H
 #define SHAREDENV_H
 
+#include <utility>
+
 #include "common.h"
 
 class SharedEnv {
@@ -21,11 +23,12 @@ class SharedEnv {
   // unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   unsigned seed = 0;
   default_random_engine gen;
+  string algorithm;
 
   SharedEnv(int num_of_robots, int width, int height, const vector<Point>& start_points,
             const vector<Point>& goal_points, const vector<double>& radii, const vector<double>& max_expand_distances,
             const vector<double>& velocities, const vector<int>& iterations, const vector<double>& goal_sample_rates,
-            const vector<shared_ptr<Obstacle>>& obstacles)
+            const vector<shared_ptr<Obstacle>>& obstacles, string algorithm)
       : num_of_robots(num_of_robots),
         width(width),
         height(height),
@@ -37,6 +40,7 @@ class SharedEnv {
         iterations(iterations),
         goal_sample_rates(goal_sample_rates),
         obstacles(obstacles),
+        algorithm(std::move(algorithm)),
         gen(seed) {}
 
   void generateRandomInstance() {

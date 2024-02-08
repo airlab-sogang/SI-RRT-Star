@@ -10,6 +10,7 @@ int main(int argc, char* argv[]) {
   string obs;
   string robotnum;
   string testnum;
+  string algorithm;
   for (int i = 1; i < argc; ++i) {
     if (strcmp(argv[i], "-m") == 0 && i + 1 < argc) {
       mapname = argv[i + 1];
@@ -19,6 +20,8 @@ int main(int argc, char* argv[]) {
       robotnum = argv[i + 1];
     } else if (strcmp(argv[i], "-t") == 0 && i + 1 < argc) {
       testnum = argv[i + 1];
+    } else if (strcmp(argv[i], "-a") == 0 && i + 1 < argc) {
+      algorithm = argv[i + 1];
     }
   }
 
@@ -73,31 +76,35 @@ int main(int argc, char* argv[]) {
   }
 
   SharedEnv env = SharedEnv(num_of_agents, width, height, start_points, goal_points, radii, max_expand_distances,
-                            velocities, iterations, goal_sample_rates, obstacles);
+                            velocities, iterations, goal_sample_rates, obstacles, algorithm);
   // env.generateRandomInstance();
   ConstraintTable constraint_table(env);
   Solution soluiton;
   auto start = std::chrono::high_resolution_clock::now();
-
-  // SI-CBS
-  // SICBS sicbs(env, constraint_table);
-  // soluiton = sicbs.run();
-
-  // SI-RRT PP
   double sum_of_costs = 0.0;
   double makespan = 0.0;
-  for (int agent_id = 0; agent_id < num_of_agents; ++agent_id) {
-    SIRRT sirrt(agent_id, env, constraint_table);
-    auto path = sirrt.run();
-    while (path.empty()) {
-      // cout << "Replanning for agent " << agent_id << endl;
-      path = sirrt.run();
+
+  if (algorithm == "cbs") {
+    // SI-CCBS
+    SICBS sicbs(env, constraint_table);
+    soluiton = sicbs.run();
+    sum_of_costs = sicbs.sum_of_costs;
+    makespan = sicbs.makespan;
+  } else if (algorithm == "pp") {
+    // SI-CPP
+    for (int agent_id = 0; agent_id < num_of_agents; ++agent_id) {
+      SIRRT sirrt(agent_id, env, constraint_table);
+      auto path = sirrt.run();
+      while (path.empty()) {
+        cout << "Replanning for agent " << agent_id << endl;
+        path = sirrt.run();
+      }
+      cout << "Agent " << agent_id << " found a solution" << endl;
+      soluiton.emplace_back(path);
+      sum_of_costs += get<1>(path.back());
+      makespan = max(makespan, get<1>(path.back()));
+      constraint_table.path_table[agent_id] = path;
     }
-    // cout << "Agent " << agent_id << " found a solution" << endl;
-    soluiton.emplace_back(path);
-    sum_of_costs += get<1>(path.back());
-    makespan = max(makespan, get<1>(path.back()));
-    constraint_table.path_table[agent_id] = path;
   }
 
   auto stop = std::chrono::high_resolution_clock::now();
@@ -108,12 +115,6 @@ int main(int argc, char* argv[]) {
   cout << "computation time: " << duration.count() << endl;
   saveSolution(soluiton, solutionPath);
   saveData(sum_of_costs, makespan, duration.count(), dataPath);
-
-  // cout << "sum of cost: " << sicbs.sum_of_costs << endl;
-  // cout << "makespan: " << sicbs.makespan << endl;
-  // cout << "computation time: " << duration.count() << endl;
-  // saveSolution(soluiton, solutionPath);
-  // saveData(sicbs.sum_of_costs, sicbs.makespan, duration.count(), dataPath);
 
   return 0;
 }
