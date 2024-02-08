@@ -1,8 +1,6 @@
 #ifndef SHAREDENV_H
 #define SHAREDENV_H
 
-#include <utility>
-
 #include "common.h"
 
 class SharedEnv {

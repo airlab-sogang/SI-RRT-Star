@@ -1,10 +1,9 @@
 #ifndef SICBS_H
 #define SICBS_H
 
-#include <SIRRT.h>
-
 #include "ConstraintTable.h"
 #include "HLNode.h"
+#include "SIRRT.h"
 #include "SharedEnv.h"
 #include "common.h"
 

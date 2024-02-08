@@ -1,9 +1,8 @@
-#include <yaml-cpp/yaml.h>
-
 #include "ConstraintTable.h"
 #include "SICBS.h"
 #include "SIRRT.h"
 #include "SharedEnv.h"
+#include "common.h"
 
 int main(int argc, char* argv[]) {
   string mapname;
@@ -64,9 +63,7 @@ int main(int argc, char* argv[]) {
   vector<double> thresholds;
   vector<int> iterations;
   vector<double> goal_sample_rates;
-  // srand(time(0));
   for (int i = 0; i < num_of_agents; ++i) {
-    // double randomValue = 0.25 + static_cast<double>(rand()) / (static_cast<double>(RAND_MAX / (1 - 0.25)));
     radii.emplace_back(0.5);
     max_expand_distances.emplace_back(5.0);
     velocities.emplace_back(0.5);
@@ -77,7 +74,6 @@ int main(int argc, char* argv[]) {
 
   SharedEnv env = SharedEnv(num_of_agents, width, height, start_points, goal_points, radii, max_expand_distances,
                             velocities, iterations, goal_sample_rates, obstacles, algorithm);
-  // env.generateRandomInstance();
   ConstraintTable constraint_table(env);
   Solution soluiton;
   auto start = std::chrono::high_resolution_clock::now();

@@ -54,7 +54,7 @@ Solution SICBS::run() {
       new_node.constraint_table[agent_ids[i]].emplace_back(env.radii[agent_ids[j]], partial_paths[j]);
       constraint_table.hard_constraint_table = new_node.constraint_table;
 
-      // print after path
+      // print before path
       // cout << "Before path" << agent_ids[i] << ": ";
       // for (const auto& state : new_node.solution[agent_ids[i]]) {
       //   cout << "(" << get<0>(get<0>(state)) << ", " << get<1>(get<0>(state)) << ", " << get<1>(state) << ")->";
@@ -67,7 +67,7 @@ Solution SICBS::run() {
       if (new_node.solution[agent_ids[i]].empty()) continue;
       // constraint_table.updateSoftConstraint(i, new_node.solution[agent_ids[i]]);
 
-      // print after path`
+      // print after path
       // cout << "After path" << agent_ids[i] << ": ";
       // for (const auto& state : new_node.solution[agent_ids[i]]) {
       //   cout << "(" << get<0>(get<0>(state)) << ", " << get<1>(get<0>(state)) << ", " << get<1>(state) << ")->";
@@ -79,9 +79,6 @@ Solution SICBS::run() {
       new_node.conflicts.clear();
       findConflicts(new_node.solution, new_node.conflicts);
 
-      // if (new_node.conflicts.size() > curr_node.conflicts.size()) {
-      //   continue;
-      // }
       // push new node to open list
       open_list.push(new_node);
     }

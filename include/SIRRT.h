@@ -1,10 +1,9 @@
 #ifndef SIRRT_H
 #define SIRRT_H
 
-#include <SafeIntervalTable.h>
-
 #include "ConstraintTable.h"
 #include "LLNode.h"
+#include "SafeIntervalTable.h"
 #include "common.h"
 
 class SIRRT {
