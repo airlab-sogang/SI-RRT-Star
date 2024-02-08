@@ -1,7 +1,3 @@
-//
-// Created by 심준열 on 12/12/23.
-//
-
 #ifndef SHAREDENV_H
 #define SHAREDENV_H
 

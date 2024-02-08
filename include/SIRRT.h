@@ -1,7 +1,3 @@
-//
-// Created by joonyeol on 23. 12. 7.
-//
-
 #ifndef SIRRT_H
 #define SIRRT_H
 

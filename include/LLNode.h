@@ -1,7 +1,3 @@
-//
-// Created by joonyeol on 23. 12. 7.
-//
-
 #ifndef LLNODE_H
 #define LLNODE_H
 

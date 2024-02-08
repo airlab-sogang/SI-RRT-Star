@@ -1,7 +1,3 @@
-//
-// Created by joonyeol on 23. 12. 8.
-//
-
 #ifndef CONSTRAINTTABLE_H
 #define CONSTRAINTTABLE_H
 

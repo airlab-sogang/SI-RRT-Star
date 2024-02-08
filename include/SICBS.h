@@ -1,7 +1,3 @@
-//
-// Created by joonyeol on 23. 12. 8.
-//
-
 #ifndef SICBS_H
 #define SICBS_H
 
