@@ -107,7 +107,7 @@ def animate(frame):
 
 
 if __name__ == '__main__':
-    sample = 5
+    sample = 10
 
     # get mapname obs robotnum testnum using argparse
     parser = argparse.ArgumentParser()
